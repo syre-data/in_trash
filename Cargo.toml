@@ -4,10 +4,16 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
-file_path_from_id = { git = "https://github.com/syre-data/file_path_from_id.git" }
-file-id = "0.2"
+file_path_from_id = { git = "https://github.com/syre-data/file_path_from_id.git", optional = true }
+file-id = { version = "0.2", optional = true }
 
 [dev-dependencies]
 test-log = { version = "0.2.16", features = ["trace"] }
 tempfile = "3.12"
 trash = "5.1"
+
+[features]
+default = []
+all = ["id", "file"]
+id = ["dep:file-id", "dep:file_path_from_id"]
+file = ["dep:file_path_from_id"]

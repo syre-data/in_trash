@@ -1,6 +1,12 @@
 //! Determines whether a file is in the trash.
 #[cfg(target_os = "windows")]
-pub use windows::{in_trash, in_trash_file};
+pub use windows::in_trash;
+
+#[cfg(all(target_os = "windows", feature = "id"))]
+pub use windows::id_in_trash;
+
+#[cfg(all(target_os = "windows", feature = "file"))]
+pub use windows::file_in_trash;
 
 #[cfg(target_os = "windows")]
 mod windows {
@@ -11,17 +17,17 @@ mod windows {
 
     const TRASH_ROOT: &str = "$Recycle.Bin";
 
-    pub fn in_trash(id: &file_id::FileId) -> Result<bool, file_path_from_id::Error> {
+    pub fn id_in_trash(id: &file_id::FileId) -> Result<bool, file_path_from_id::Error> {
         let path = file_path_from_id::path_from_id(id)?;
-        Ok(path_in_trash(&path))
+        Ok(in_trash(&path))
     }
 
-    pub fn in_trash_file(file: &fs::File) -> Result<bool, file_path_from_id::Error> {
+    pub fn file_in_trash(file: &fs::File) -> Result<bool, file_path_from_id::Error> {
         let path = file_path_from_id::path_from_file(file)?;
-        Ok(path_in_trash(&path))
+        Ok(in_trash(&path))
     }
 
-    fn path_in_trash(path: impl AsRef<Path>) -> bool {
+    pub fn in_trash(path: impl AsRef<Path>) -> bool {
         let mut components = path.as_ref().components();
         let prefix = components.next().unwrap();
         assert!(matches!(prefix, Component::Prefix(_)), "invalid path");
@@ -46,29 +52,32 @@ mod windows {
 
 #[cfg(test)]
 mod test {
-    use super::in_trash;
     use std::fs;
     use test_log::test;
 
-    #[cfg(target_os = "windows")]
+    #[cfg(all(target_os = "windows", feature = "id"))]
     #[test]
     fn windows_not_in_trash() {
+        use super::id_in_trash;
+
         const FILENAME: &str = "__tmp_out__";
         let path = std::env::current_dir().unwrap().join(FILENAME);
         let f = fs::File::create(&path).unwrap();
         let id = file_id::get_file_id(&path).unwrap();
         drop(f);
-        assert!(!in_trash(&id).unwrap());
+        assert!(!id_in_trash(&id).unwrap());
         fs::remove_file(&path).unwrap();
     }
 
-    #[cfg(target_os = "windows")]
+    #[cfg(all(target_os = "windows", feature = "id"))]
     #[test]
     fn windows_in_trash() {
+        use super::id_in_trash;
+
         let f = tempfile::NamedTempFile::new().unwrap();
         let id = file_id::get_file_id(f.path()).unwrap();
         trash::delete(f.path()).unwrap();
         drop(f);
-        assert!(in_trash(&id).unwrap());
+        assert!(id_in_trash(&id).unwrap());
     }
 }
