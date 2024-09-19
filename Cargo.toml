@@ -1,0 +1,13 @@
+[package]
+name = "in_trash"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+file_path_from_id = { git = "https://github.com/syre-data/file_path_from_id.git" }
+file-id = "0.2"
+
+[dev-dependencies]
+test-log = { version = "0.2.16", features = ["trace"] }
+tempfile = "3.12"
+trash = "5.1"
