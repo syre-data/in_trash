@@ -10,19 +10,19 @@ pub use windows::file_in_trash;
 
 #[cfg(target_os = "windows")]
 mod windows {
-    use std::{
-        fs,
-        path::{Component, Path},
-    };
+    // Can also use [SHGetKnownFolderPath](https://learn.microsoft.com/en-us/windows/win32/api/shlobj_core/nf-shlobj_core-shgetknownfolderpath).
+    use std::path::{Component, Path};
 
     const TRASH_ROOT: &str = "$Recycle.Bin";
 
+    #[cfg(feature = "id")]
     pub fn id_in_trash(id: &file_id::FileId) -> Result<bool, file_path_from_id::Error> {
         let path = file_path_from_id::path_from_id(id)?;
         Ok(in_trash(&path))
     }
 
-    pub fn file_in_trash(file: &fs::File) -> Result<bool, file_path_from_id::Error> {
+    #[cfg(feature = "file")]
+    pub fn file_in_trash(file: &std::fs::File) -> Result<bool, file_path_from_id::Error> {
         let path = file_path_from_id::path_from_file(file)?;
         Ok(in_trash(&path))
     }
